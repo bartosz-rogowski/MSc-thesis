@@ -30,13 +30,13 @@ def load_points_from_file(
     :return: np.ndarray of points, np.ndarray of distance matrix
         or tuple of Nones if any exception is raised
     """
-    points, distances = None, None
+    points, distance_matrix = None, None
     to_directory = "./input_files/"
     path = to_directory + filename
     try:
         points = np.loadtxt(path)
-        distances = calculate_distance_matrix(points)
+        distance_matrix = calculate_distance_matrix(points)
     except Exception as e:
         print(e)
     finally:
-        return points, distances
+        return points, distance_matrix
