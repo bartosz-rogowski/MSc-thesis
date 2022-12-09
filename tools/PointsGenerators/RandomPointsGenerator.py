@@ -13,7 +13,7 @@ def generate_random_points(
     :param min_value: minimal value of range (default: -10)
     :param max_value: maximal value of range (default: 10)
     :return: np.ndarray(shape=(n,2)) of coordinates
-    :raise: Exception when min_value equals max_value
+    :raise Exception: when min_value equals max_value
     """
     if math.isclose(min_value, max_value):
         raise Exception(f"Values of min_value and max_value cannot be the same")
