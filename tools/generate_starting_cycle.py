@@ -18,6 +18,7 @@ def nearest_neighbour(
 
     if starting_point is None:
         starting_point = np.random.randint(0, number_of_points)
+    print(f"{starting_point = }")
 
     if starting_point < 0 or starting_point > number_of_points:
         starting_point = np.random.randint(0, number_of_points)

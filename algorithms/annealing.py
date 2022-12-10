@@ -83,6 +83,11 @@ class SimulatedAnnealing(AlgorithmStrategy):
         self.cooling_temperature_strategy = cooling_temperature_strategy
 
     def calculate_cycle_length(self, cycle: np.ndarray):
+        """
+
+        :param cycle: np.ndarray of visiting order
+        :return: length of a cycle
+        """
         length: float = 0.0
         for i in range(len(cycle) - 1):
             index_from, index_to = cycle[i], cycle[i + 1]
@@ -93,6 +98,13 @@ class SimulatedAnnealing(AlgorithmStrategy):
                                    cycle: np.ndarray,
                                    cycle_length: float
                                    ) -> Tuple[np.ndarray, float]:
+        """Method that makes 2-opt on a given cycle
+        and calcucalates new cycle length.
+
+        :param cycle: np.ndarray of visiting order
+        :param cycle_length:
+        :return: tuple containing new cycle and its length
+        """
         new_cycle = cycle.copy()
         new_cycle_length = cycle_length
         i, j = -1, -1
@@ -112,6 +124,10 @@ class SimulatedAnnealing(AlgorithmStrategy):
         return new_cycle, new_cycle_length
 
     def find_shortest_cycle(self) -> Tuple[np.ndarray, float]:
+        """Method conducting simmulated annealing
+
+        :return: tuple containing shortest cycle and its length
+        """
         temperature: float = self.cooling_temperature_strategy.get_temperature()
         cycle: np.ndarray = self.starting_cycle.copy()
         cycle_length: float = self.calculate_cycle_length(cycle=cycle)

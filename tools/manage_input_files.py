@@ -14,7 +14,7 @@ def generate_coordinates_to_file(
     :param n: number of points to generate
     :param filename_without_extension: output filename without extension
     """
-    points = generate_random_points(n)
+    points = generate_random_points(n, min_value=-15, max_value=15)
     to_directory = "./input_files/"
     if not os.path.isdir(to_directory):
         os.mkdir(to_directory)
