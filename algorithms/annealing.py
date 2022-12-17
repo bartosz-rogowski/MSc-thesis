@@ -1,86 +1,34 @@
-from . import AlgorithmStrategy
-from . import ABC, abstractmethod
+import numba
 import numpy as np
 from typing import Tuple
+from numba.experimental import jitclass
 
 
-class TemperatureCoolingStrategy(ABC):
-    """Interface for different temperature cooling methods
-    """
-
-    @abstractmethod
-    def cool_temperature(self) -> None:
-        pass
-
-    @abstractmethod
-    def get_temperature(self) -> float:
-        pass
-
-
-class SquaredTemperatureCooling(TemperatureCoolingStrategy):
-    """Class implementing squared temperature cooling method
-    """
-    def __init__(self, max_iteration: int, a: float = 1e-3):
-        if max_iteration < 0:
-            raise ValueError("Iteration number must be positive.")
-        self.__iteration = max_iteration
-        self.__constant = a
-        self.__temperature = self.__constant * np.power(self.__iteration, 2)
-
-    def cool_temperature(self) -> None:
-        """Decrements iteration number and cools temperature by the following
-        formula: ``self.constant * self.iteration**2``.
-
-        :raise Exception: when ``self.iteration`` becomes negative
-        """
-        self.__iteration -= 1
-        if self.__iteration < 0:
-            raise Exception("Exceeded iteration number")
-        else:
-            self.__temperature = self.__constant * np.power(self.__iteration, 2)
-
-    def get_temperature(self) -> float:
-        return self.__temperature
-
-
-class LinearTemperatureCooling(TemperatureCoolingStrategy):
-    """Class implementing linear temperature cooling method
-    """
-    def __init__(self, max_iteration: int, a: float = 1):
-        if max_iteration < 0:
-            raise ValueError("Iteration number must be positive.")
-        self.__iteration = max_iteration
-        self.__constant = a
-        self.__temperature = self.__constant * self.__iteration
-
-    def cool_temperature(self) -> None:
-        """Decrements iteration number and cools temperature by the following
-        formula: ``self.constant * self.iteration``.
-
-        :raise Exception: when ``self.iteration`` becomes negative
-        """
-        self.__iteration -= 1
-        if self.__iteration < 0:
-            raise Exception("Exceeded iteration number")
-        else:
-            self.__temperature = self.__constant * self.__iteration
-
-    def get_temperature(self) -> float:
-        return self.__temperature
-
-
-class SimulatedAnnealing(AlgorithmStrategy):
+@jitclass(
+    spec=[
+        ("distance_matrix", numba.float64[:, :]),
+        ("starting_cycle", numba.int32[:]),
+        ("MAX_ITERATIONS", numba.int32),
+        ("temp_iteration", numba.int32),
+        ("constant", numba.float64),
+        ("temperature", numba.float64),
+    ]
+)
+class SimulatedAnnealing:
     """Simulated annealing class
     """
+
     def __init__(self,
                  distance_matrix: np.ndarray,
                  starting_cycle: np.ndarray,
                  max_iterations: int,
-                 cooling_temperature_strategy: TemperatureCoolingStrategy):
+                 temp_iteration: int):
         self.distance_matrix = distance_matrix
         self.starting_cycle = starting_cycle
         self.MAX_ITERATIONS = max_iterations
-        self.cooling_temperature_strategy = cooling_temperature_strategy
+        self.temp_iteration = temp_iteration
+        self.constant = 1e-3
+        self.temperature = self.constant * np.power(self.temp_iteration, 2)
 
     def calculate_cycle_length(self, cycle: np.ndarray):
         """
@@ -109,7 +57,8 @@ class SimulatedAnnealing(AlgorithmStrategy):
         new_cycle_length = cycle_length
         i, j = -1, -1
         while abs(i - j) <= 1 or abs(i - j) == len(cycle) - 1:
-            i, j = np.random.randint(len(cycle) - 1, size=2)
+            i = np.random.randint(len(cycle) - 1)
+            j = np.random.randint(len(cycle) - 1)
 
         if i > j:
             i, j = j, i
@@ -123,16 +72,23 @@ class SimulatedAnnealing(AlgorithmStrategy):
         new_cycle[b:d] = new_cycle[b:d][::-1]
         return new_cycle, new_cycle_length
 
-    def find_shortest_cycle(self) -> Tuple[np.ndarray, float]:
-        """Method conducting simmulated annealing
-
-        :return: tuple containing shortest cycle and its length
+    def cool_temperature(self) -> None:
+        """Decrements iteration number and cools temperature by the following
+        formula: ``self.constant * self.iteration**2``.
         """
-        temperature: float = self.cooling_temperature_strategy.get_temperature()
+        self.temp_iteration -= 1
+        self.temperature = self.constant * np.power(self.temp_iteration, 2)
+
+    def find_shortest_cycle(self) -> Tuple[np.ndarray, float]:
+        """Method conducting simulated annealing
+
+        :return: tuple containing the shortest cycle and its length
+        """
+
         cycle: np.ndarray = self.starting_cycle.copy()
         cycle_length: float = self.calculate_cycle_length(cycle=cycle)
-        print(f"starting_cycle_length = {cycle_length:.2f}")
-        while temperature > 0:
+        print("starting_cycle_length =", round(cycle_length, 2))
+        while self.temperature > 0:
             for iteration in range(self.MAX_ITERATIONS):
                 new_cycle, new_cycle_length = self.create_new_cycle_with_2opt(
                     cycle,
@@ -143,11 +99,10 @@ class SimulatedAnnealing(AlgorithmStrategy):
                 if length_diff < 0:
                     cycle = new_cycle
                     cycle_length = new_cycle_length
-                elif np.random.rand() < np.exp(-length_diff / temperature):
+                elif np.random.rand() < np.exp(-length_diff / self.temperature):
                     cycle = new_cycle
                     cycle_length = new_cycle_length
             # end of for
-            self.cooling_temperature_strategy.cool_temperature()
-            temperature = self.cooling_temperature_strategy.get_temperature()
+            self.cool_temperature()
         # end of while
         return cycle, cycle_length
