@@ -79,15 +79,21 @@ class SimulatedAnnealing:
         self.temp_iteration -= 1
         self.temperature = self.constant * np.power(self.temp_iteration, 2)
 
-    def find_shortest_cycle(self) -> Tuple[np.ndarray, float]:
+    def find_shortest_cycle(self) -> Tuple[np.ndarray, float, np.ndarray]:
         """Method conducting simulated annealing
 
-        :return: tuple containing the shortest cycle and its length
+        :return: tuple containing np.ndarray of the shortest cycle, its length
+            and np.ndarray of all accepted cycles lengths
         """
 
         cycle: np.ndarray = self.starting_cycle.copy()
         cycle_length: float = self.calculate_cycle_length(cycle=cycle)
         print("starting_cycle_length =", round(cycle_length, 2))
+        cycle_lengths_array: np.ndarray = -1*np.zeros(
+            10*self.temp_iteration*self.distance_matrix.shape[0]**2
+        )
+        idx: int = 0
+        cycle_lengths_array[idx] = round(cycle_length, 2)
         while self.temperature > 0:
             for iteration in range(self.MAX_ITERATIONS):
                 new_cycle, new_cycle_length = self.create_new_cycle_with_2opt(
@@ -96,13 +102,15 @@ class SimulatedAnnealing:
                 )
                 length_diff: float = new_cycle_length - cycle_length
 
-                if length_diff < 0:
+                should_accept_cycle: bool = length_diff < 0 \
+                    or np.random.rand() < np.exp(-length_diff/self.temperature)
+                if should_accept_cycle:
                     cycle = new_cycle
                     cycle_length = new_cycle_length
-                elif np.random.rand() < np.exp(-length_diff / self.temperature):
-                    cycle = new_cycle
-                    cycle_length = new_cycle_length
+                    idx += 1
+                    cycle_lengths_array[idx] = round(cycle_length, 2)
             # end of for
             self.cool_temperature()
         # end of while
-        return cycle, cycle_length
+        print(idx)
+        return cycle, cycle_length, cycle_lengths_array
