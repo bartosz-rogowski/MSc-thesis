@@ -2,6 +2,7 @@ import numba
 import numpy as np
 from typing import Tuple
 from numba.experimental import jitclass
+from numpy import ndarray
 
 
 @jitclass(
@@ -79,7 +80,7 @@ class SimulatedAnnealing:
         self.temp_iteration -= 1
         self.temperature = self.constant * np.power(self.temp_iteration, 2)
 
-    def find_shortest_cycle(self) -> Tuple[np.ndarray, float, np.ndarray]:
+    def find_shortest_cycle(self) -> tuple[ndarray, float, ndarray, ndarray]:
         """Method conducting simulated annealing
 
         :return: tuple containing np.ndarray of the shortest cycle, its length
@@ -89,17 +90,24 @@ class SimulatedAnnealing:
         cycle: np.ndarray = self.starting_cycle.copy()
         cycle_length: float = self.calculate_cycle_length(cycle=cycle)
         print("starting_cycle_length =", round(cycle_length, 2))
-        cycle_lengths_array: np.ndarray = -1*np.zeros(
+        cycle_lengths_array: np.ndarray = -1*np.ones(
             10*self.temp_iteration*self.distance_matrix.shape[0]**2
+        )
+        cycle_lengths_iterations_array: np.ndarray = -1 * np.ones(
+            10 * self.temp_iteration * self.distance_matrix.shape[0] ** 2,
+            dtype="int"
         )
         idx: int = 0
         cycle_lengths_array[idx] = round(cycle_length, 2)
+        overall_iteration: int = 0
+        cycle_lengths_iterations_array[idx] = overall_iteration
         while self.temperature > 0:
             for iteration in range(self.MAX_ITERATIONS):
                 new_cycle, new_cycle_length = self.create_new_cycle_with_2opt(
                     cycle,
                     cycle_length
                 )
+                overall_iteration += 1
                 length_diff: float = new_cycle_length - cycle_length
 
                 should_accept_cycle: bool = length_diff < 0 \
@@ -109,8 +117,12 @@ class SimulatedAnnealing:
                     cycle_length = new_cycle_length
                     idx += 1
                     cycle_lengths_array[idx] = round(cycle_length, 2)
+                    cycle_lengths_iterations_array[idx] = overall_iteration
             # end of for
             self.cool_temperature()
         # end of while
-        print(idx)
-        return cycle, cycle_length, cycle_lengths_array
+        cycle_lengths_array[idx] = round(cycle_length, 2)
+        cycle_lengths_iterations_array[idx] = overall_iteration
+        print("overall number of accepted cycles =", idx)
+        print("overall iterations =", overall_iteration)
+        return cycle, cycle_length, cycle_lengths_array, cycle_lengths_iterations_array
