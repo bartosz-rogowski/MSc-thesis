@@ -28,6 +28,8 @@ class SimulatedAnnealing:
         self.starting_cycle = starting_cycle
         self.MAX_ITERATIONS = max_iterations
         self.temp_iteration = temp_iteration
+        # self.constant = 0.85
+        # self.temperature = 100
         self.constant = 1e-3
         self.temperature = self.constant * np.power(self.temp_iteration, 2)
 
@@ -78,6 +80,7 @@ class SimulatedAnnealing:
         formula: ``self.constant * self.iteration**2``.
         """
         self.temp_iteration -= 1
+        # self.temperature = self.temperature*self.constant
         self.temperature = self.constant * np.power(self.temp_iteration, 2)
 
     def find_shortest_cycle(self) -> tuple[ndarray, float, ndarray, ndarray]:
@@ -101,7 +104,7 @@ class SimulatedAnnealing:
         cycle_lengths_array[idx] = round(cycle_length, 2)
         overall_iteration: int = 0
         cycle_lengths_iterations_array[idx] = overall_iteration
-        while self.temperature > 0:
+        while self.temp_iteration > 0:
             for iteration in range(self.MAX_ITERATIONS):
                 new_cycle, new_cycle_length = self.create_new_cycle_with_2opt(
                     cycle,
