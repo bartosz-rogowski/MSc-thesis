@@ -10,7 +10,7 @@ from tools.visualisers import Visualiser
 if __name__ == '__main__':
     app_start_time = perf_counter()
 
-    number_of_points: int = 1000
+    number_of_points: int = 500
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
     points, distance_matrix = load_points_from_file(
         f"{number_of_points}points.dat"
@@ -21,7 +21,11 @@ if __name__ == '__main__':
         raise Exception("distances array is None")
 
     starting_cycle: np.ndarray = nearest_neighbour(distance_matrix, starting_point=0)
-    # np.savetxt("starting_cycle.dat", starting_cycle)
+    # starting_cycle: np.ndarray = np.arange(number_of_points)
+    # np.random.shuffle(starting_cycle)
+    # starting_cycle = np.append(starting_cycle, starting_cycle[0])
+
+    # np.savetxt("starting_cycle.dat", starting_cycle, fmt="%i")
 
     algorithm = SimulatedAnnealing(
         distance_matrix=distance_matrix,
@@ -37,15 +41,11 @@ if __name__ == '__main__':
     print(f"{shortest_cycle_length = :.2f}")
     print(f"Algorithms ran for {(alg_end_time - alg_start_time):.3f} seconds")
 
-    # visualiser = Visualiser(points=points, distance_matrix=distance_matrix)
-    # visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
-    # visualiser.create_cycle_figure(shortest_cycle, title="znaleziony cykl")
-
     cycle_lengths_array = cycle_lengths_array[cycle_lengths_array > 0]
     cycle_lengths_iterations_array = cycle_lengths_iterations_array[cycle_lengths_iterations_array >= 0]
     assert len(cycle_lengths_array) == len(cycle_lengths_iterations_array)
 
-    if False:
+    if True:
         plt.figure(figsize=(12, 7))
         plt.title("Długości kolejnych akceptowanych cykli")
         ax1 = plt.subplot(2, 1, 1)
@@ -108,6 +108,6 @@ if __name__ == '__main__':
     app_end_time = perf_counter()
     print(f"Program ran for {(app_end_time - app_start_time):.3f} seconds")
 
-    # print(cycle_lengths_iterations_array[-10:])
-    # print(cycle_lengths_array[-10:])
-    # plt.show()
+    # print(cycle_lengths_iterations_array[-100:])
+    # print(cycle_lengths_array[-100:])
+    plt.show()

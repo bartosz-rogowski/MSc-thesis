@@ -28,10 +28,10 @@ class SimulatedAnnealing:
         self.starting_cycle = starting_cycle
         self.MAX_ITERATIONS = max_iterations
         self.temp_iteration = temp_iteration
-        # self.constant = 0.85
-        # self.temperature = 100
-        self.constant = 1e-3
-        self.temperature = self.constant * np.power(self.temp_iteration, 2)
+        self.constant = 0.85
+        self.temperature = 100
+        # self.constant = 1e-3
+        # self.temperature = self.constant * np.power(self.temp_iteration, 2)
 
     def calculate_cycle_length(self, cycle: np.ndarray):
         """
@@ -40,8 +40,9 @@ class SimulatedAnnealing:
         :return: length of a cycle
         """
         length: float = 0.0
-        for i in range(len(cycle) - 1):
-            index_from, index_to = cycle[i], cycle[i + 1]
+        n: int = len(cycle)
+        for i in range(n):
+            index_from, index_to = cycle[i], cycle[(i + 1) % n]
             length += self.distance_matrix[index_from][index_to]
         return length
 
@@ -50,7 +51,7 @@ class SimulatedAnnealing:
                                    cycle_length: float
                                    ) -> Tuple[np.ndarray, float]:
         """Method that makes 2-opt on a given cycle
-        and calcucalates new cycle length.
+        and calculates new cycle length.
 
         :param cycle: np.ndarray of visiting order
         :param cycle_length:
@@ -80,8 +81,8 @@ class SimulatedAnnealing:
         formula: ``self.constant * self.iteration**2``.
         """
         self.temp_iteration -= 1
-        # self.temperature = self.temperature*self.constant
-        self.temperature = self.constant * np.power(self.temp_iteration, 2)
+        self.temperature = self.temperature * self.constant
+        # self.temperature = self.constant * np.power(self.temp_iteration, 2)
 
     def find_shortest_cycle(self) -> tuple[ndarray, float, ndarray, ndarray]:
         """Method conducting simulated annealing
@@ -93,8 +94,8 @@ class SimulatedAnnealing:
         cycle: np.ndarray = self.starting_cycle.copy()
         cycle_length: float = self.calculate_cycle_length(cycle=cycle)
         print("starting_cycle_length =", round(cycle_length, 2))
-        cycle_lengths_array: np.ndarray = -1*np.ones(
-            10*self.temp_iteration*self.distance_matrix.shape[0]**2
+        cycle_lengths_array: np.ndarray = -1 * np.ones(
+            10 * self.temp_iteration * self.distance_matrix.shape[0] ** 2
         )
         cycle_lengths_iterations_array: np.ndarray = -1 * np.ones(
             10 * self.temp_iteration * self.distance_matrix.shape[0] ** 2,
@@ -114,7 +115,7 @@ class SimulatedAnnealing:
                 length_diff: float = new_cycle_length - cycle_length
 
                 should_accept_cycle: bool = length_diff < 0 \
-                    or np.random.rand() < np.exp(-length_diff/self.temperature)
+                                            or np.random.rand() < np.exp(-length_diff / self.temperature)
                 if should_accept_cycle:
                     cycle = new_cycle
                     cycle_length = new_cycle_length
