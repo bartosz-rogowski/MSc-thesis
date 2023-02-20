@@ -34,7 +34,7 @@ class SimulatedAnnealing:
         self.TEMP_ITERATIONS = temp_iterations
         self.START_TEMPERATURE = start_temperature
         self.BETA = 0.85  # constant for exponential cooling schedule
-        self.END_TEMPERATURE = self.START_TEMPERATURE * np.power(self.BETA, self.MAX_ITERATIONS)
+        self.END_TEMPERATURE = self.START_TEMPERATURE * np.power(self.BETA, self.TEMP_ITERATIONS)
         self.temp_iteration = 0
         self.temperature = self.START_TEMPERATURE
 
@@ -98,6 +98,12 @@ class SimulatedAnnealing:
 
         if schedule == "EXPONENTIAL":
             self.temperature *= self.BETA
+
+        if schedule == "INVERSE_QUADRATIC":
+            a: float = 0.5
+            b: float = (self.START_TEMPERATURE/(1+a*self.TEMP_ITERATIONS**2) - self.END_TEMPERATURE) \
+                / self.TEMP_ITERATIONS
+            self.temperature = self.START_TEMPERATURE/(1. + a*self.temp_iteration**2) - b*self.temp_iteration
 
     def find_shortest_cycle(self, precision: int = 2) -> Tuple[ndarray, float, ndarray, ndarray]:
         """Method conducting simulated annealing
