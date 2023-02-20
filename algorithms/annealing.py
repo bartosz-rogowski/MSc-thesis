@@ -27,7 +27,7 @@ class SimulatedAnnealing:
                  starting_cycle: np.ndarray,
                  max_iterations: int,
                  temp_iterations: int,
-                 start_temperature: int = 10):
+                 start_temperature: float = 10):
         self.distance_matrix = distance_matrix
         self.starting_cycle = starting_cycle
         self.MAX_ITERATIONS = max_iterations
