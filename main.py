@@ -42,7 +42,11 @@ if __name__ == '__main__':
         = algorithm.find_shortest_cycle(precision)
     alg_end_time = perf_counter()
     print(f"{shortest_cycle_length = }")
-    print(f"Algorithms ran for {(alg_end_time - alg_start_time):.3f} seconds")
+    print(f"Algorithm ran for {(alg_end_time - alg_start_time):.3f} seconds")
+
+    visualiser = Visualiser(points=points, distance_matrix=distance_matrix)
+    visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
+    visualiser.create_cycle_figure(shortest_cycle, title="znaleziony cykl")
 
     cycle_lengths_array = cycle_lengths_array[cycle_lengths_array > 0]
     cycle_lengths_iterations_array = cycle_lengths_iterations_array[cycle_lengths_iterations_array >= 0]
