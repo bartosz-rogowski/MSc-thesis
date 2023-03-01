@@ -4,13 +4,14 @@ from tools.manage_input_files \
     import generate_coordinates_to_file, load_points_from_file
 from tools.generate_starting_cycle import nearest_neighbour
 from algorithms.annealing import SimulatedAnnealing
+from algorithms.genetic import GeneticAlgorithm
 from time import perf_counter
 from tools.visualisers import Visualiser
 
 if __name__ == '__main__':
     app_start_time = perf_counter()
 
-    number_of_points: int = 500
+    number_of_points: int = 100
     precision: int = 3  # of cycle length
 
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
@@ -29,30 +30,51 @@ if __name__ == '__main__':
 
     # np.savetxt("starting_cycle.dat", starting_cycle, fmt="%i")
 
-    algorithm = SimulatedAnnealing(
+    initial_population_array = [nearest_neighbour(distance_matrix) for _ in range(2000)]
+    # initial_population_array = np.zeros(shape=(200, number_of_points+1))
+    # for i in range(200):
+    #     starting_cycle: np.ndarray = np.arange(number_of_points)
+    #     np.random.shuffle(starting_cycle)
+    #     starting_cycle = np.append(starting_cycle, starting_cycle[0])
+    #     initial_population_array[i] = starting_cycle
+    algorithm = GeneticAlgorithm(
         distance_matrix=distance_matrix,
-        starting_cycle=starting_cycle,
-        max_iterations=distance_matrix.shape[0] ** 2,
-        temp_iterations=100,
-        start_temperature=0.1,
+        max_iterations=10*distance_matrix.shape[0],
+        num_parents_mating=1000,
+        # sol_per_pop=200,
+        mutation_probability=5e-2,
+        parent_selection_type="tournament",
+        mutation_type="swap",
+        keep_elitism=10,
+        initial_population=initial_population_array,
     )
 
+    # algorithm = SimulatedAnnealing(
+    #     distance_matrix=distance_matrix,
+    #     starting_cycle=starting_cycle,
+    #     max_iterations=distance_matrix.shape[0] ** 2,
+    #     temp_iterations=100,
+    #     start_temperature=0.1,
+    # )
+
     alg_start_time = perf_counter()
-    shortest_cycle, shortest_cycle_length, cycle_lengths_array, cycle_lengths_iterations_array \
-        = algorithm.find_shortest_cycle(precision)
+    # shortest_cycle, shortest_cycle_length, cycle_lengths_array, cycle_lengths_iterations_array \
+    #     = algorithm.find_shortest_cycle(precision)
+    shortest_cycle = algorithm.find_shortest_cycle()
     alg_end_time = perf_counter()
-    print(f"{shortest_cycle_length = }")
+    # print(f"{shortest_cycle_length = }")
+    print(f"{shortest_cycle = }")
     print(f"Algorithm ran for {(alg_end_time - alg_start_time):.3f} seconds")
 
     visualiser = Visualiser(points=points, distance_matrix=distance_matrix)
-    visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
+    # visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
     visualiser.create_cycle_figure(shortest_cycle, title="znaleziony cykl")
 
-    cycle_lengths_array = cycle_lengths_array[cycle_lengths_array > 0]
-    cycle_lengths_iterations_array = cycle_lengths_iterations_array[cycle_lengths_iterations_array >= 0]
-    assert len(cycle_lengths_array) == len(cycle_lengths_iterations_array)
+    if False:
+        cycle_lengths_array = cycle_lengths_array[cycle_lengths_array > 0]
+        cycle_lengths_iterations_array = cycle_lengths_iterations_array[cycle_lengths_iterations_array >= 0]
+        assert len(cycle_lengths_array) == len(cycle_lengths_iterations_array)
 
-    if True:
         plt.figure(figsize=(12, 7))
         plt.title("Długości kolejnych akceptowanych cykli")
         ax1 = plt.subplot(2, 1, 1)
@@ -117,4 +139,5 @@ if __name__ == '__main__':
 
     # print(cycle_lengths_iterations_array[-100:])
     # print(cycle_lengths_array[-100:])
+    algorithm.plot_fitness_function()
     plt.show()
