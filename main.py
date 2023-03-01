@@ -32,9 +32,9 @@ if __name__ == '__main__':
     algorithm = SimulatedAnnealing(
         distance_matrix=distance_matrix,
         starting_cycle=starting_cycle,
-        max_iterations=2 * distance_matrix.shape[0] ** 2,
+        max_iterations=distance_matrix.shape[0] ** 2,
         temp_iterations=100,
-        start_temperature=10,
+        start_temperature=0.1,
     )
 
     alg_start_time = perf_counter()

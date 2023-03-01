@@ -81,29 +81,73 @@ class SimulatedAnnealing:
         new_cycle[b:d] = new_cycle[b:d][::-1]
         return new_cycle, new_cycle_length
 
+    def create_new_cycle_with_2opt_neighbourhood_pruning(
+        self,
+        cycle: np.ndarray,
+        cycle_length: float,
+        allowed_distance: float,
+    ) -> Tuple[np.ndarray, float]:
+        """Method that makes 2-opt on a given cycle
+        and calculates new cycle length.
+
+        :param cycle: np.ndarray of visiting order
+        :param cycle_length:
+        :param allowed_distance: maximum distance between chosen points
+        :return: tuple containing new cycle and its length
+        """
+        new_cycle = cycle.copy()
+        new_cycle_length = cycle_length
+        i, j = -1, -1
+        allowed_attempts: int = 100
+        continue_searching: bool = True
+
+        while continue_searching:
+            i = np.random.randint(len(cycle) - 1)
+            j = np.random.randint(len(cycle) - 1)
+            invalid_indices: bool = (abs(i - j) <= 1 or abs(i - j) == len(cycle) - 1)
+            distance: float = self.distance_matrix[cycle[i], cycle[j]]
+            if not invalid_indices:
+                if allowed_attempts > 0 and distance > allowed_distance:
+                    continue_searching = True
+                else:
+                    continue_searching = False
+            allowed_attempts -= 1
+
+        if i > j:
+            i, j = j, i
+
+        a, b = i, i + 1
+        c, d = j, j + 1
+        new_cycle_length -= self.distance_matrix[cycle[a]][cycle[b]]
+        new_cycle_length -= self.distance_matrix[cycle[c]][cycle[d]]
+        new_cycle_length += self.distance_matrix[cycle[a]][cycle[c]]
+        new_cycle_length += self.distance_matrix[cycle[b]][cycle[d]]
+        new_cycle[b:d] = new_cycle[b:d][::-1]
+        return new_cycle, new_cycle_length
+
     def cool_temperature(self, schedule: str = "EXPONENTIAL") -> None:
         """Cools temperature by chosen schedule and increments temperature iteration.
         """
         schedule = schedule.upper()
         self.temp_iteration += 1
         if schedule == "LINEAR":
-            a: float = (self.START_TEMPERATURE - self.END_TEMPERATURE)/self.TEMP_ITERATIONS
+            a: float = (self.START_TEMPERATURE - self.END_TEMPERATURE) / self.TEMP_ITERATIONS
             b: float = self.END_TEMPERATURE
             self.temperature = a * (self.TEMP_ITERATIONS - self.temp_iteration) + b
         if schedule == "QUADRATIC":
-            a: float = -(self.END_TEMPERATURE - self.START_TEMPERATURE) / self.TEMP_ITERATIONS**2
-            b: float = 2*(self.END_TEMPERATURE - self.START_TEMPERATURE) / self.TEMP_ITERATIONS
+            a: float = -(self.END_TEMPERATURE - self.START_TEMPERATURE) / self.TEMP_ITERATIONS ** 2
+            b: float = 2 * (self.END_TEMPERATURE - self.START_TEMPERATURE) / self.TEMP_ITERATIONS
             c: float = self.START_TEMPERATURE
-            self.temperature = a * self.temp_iteration**2 + b * self.temp_iteration + c
+            self.temperature = a * self.temp_iteration ** 2 + b * self.temp_iteration + c
 
         if schedule == "EXPONENTIAL":
             self.temperature *= self.BETA
 
         if schedule == "INVERSE_QUADRATIC":
             a: float = 0.5
-            b: float = (self.START_TEMPERATURE/(1+a*self.TEMP_ITERATIONS**2) - self.END_TEMPERATURE) \
-                / self.TEMP_ITERATIONS
-            self.temperature = self.START_TEMPERATURE/(1. + a*self.temp_iteration**2) - b*self.temp_iteration
+            b: float = (self.START_TEMPERATURE / (1 + a * self.TEMP_ITERATIONS ** 2) - self.END_TEMPERATURE) \
+                       / self.TEMP_ITERATIONS
+            self.temperature = self.START_TEMPERATURE / (1. + a * self.temp_iteration ** 2) - b * self.temp_iteration
 
     def find_shortest_cycle(self, precision: int = 2) -> Tuple[ndarray, float, ndarray, ndarray]:
         """Method conducting simulated annealing
@@ -131,15 +175,16 @@ class SimulatedAnnealing:
         cycle_lengths_iterations_array[idx] = overall_iteration
         while self.temp_iteration < self.TEMP_ITERATIONS:
             for iteration in range(self.MAX_ITERATIONS):
-                new_cycle, new_cycle_length = self.create_new_cycle_with_2opt(
+                new_cycle, new_cycle_length = self.create_new_cycle_with_2opt_neighbourhood_pruning(
                     cycle,
-                    cycle_length
+                    cycle_length,
+                    allowed_distance=0.1,
                 )
                 overall_iteration += 1
                 length_diff: float = new_cycle_length - cycle_length
 
                 should_accept_cycle: bool = (length_diff < 0) \
-                    or (np.random.rand() < np.exp(-length_diff / self.temperature))
+                                            or (np.random.rand() < np.exp(-length_diff / self.temperature))
                 if should_accept_cycle and length_diff != 0:
                     cycle = new_cycle
                     cycle_length = new_cycle_length
