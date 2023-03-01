@@ -11,6 +11,8 @@ if __name__ == '__main__':
     app_start_time = perf_counter()
 
     number_of_points: int = 500
+    precision: int = 3  # of cycle length
+
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
     points, distance_matrix = load_points_from_file(
         f"{number_of_points}points.dat"
@@ -30,16 +32,21 @@ if __name__ == '__main__':
     algorithm = SimulatedAnnealing(
         distance_matrix=distance_matrix,
         starting_cycle=starting_cycle,
-        max_iterations=2 * distance_matrix.shape[0] ** 2,
-        temp_iteration=100,
+        max_iterations=distance_matrix.shape[0] ** 2,
+        temp_iterations=100,
+        start_temperature=0.1,
     )
 
     alg_start_time = perf_counter()
     shortest_cycle, shortest_cycle_length, cycle_lengths_array, cycle_lengths_iterations_array \
-        = algorithm.find_shortest_cycle()
+        = algorithm.find_shortest_cycle(precision)
     alg_end_time = perf_counter()
-    print(f"{shortest_cycle_length = :.2f}")
-    print(f"Algorithms ran for {(alg_end_time - alg_start_time):.3f} seconds")
+    print(f"{shortest_cycle_length = }")
+    print(f"Algorithm ran for {(alg_end_time - alg_start_time):.3f} seconds")
+
+    visualiser = Visualiser(points=points, distance_matrix=distance_matrix)
+    visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
+    visualiser.create_cycle_figure(shortest_cycle, title="znaleziony cykl")
 
     cycle_lengths_array = cycle_lengths_array[cycle_lengths_array > 0]
     cycle_lengths_iterations_array = cycle_lengths_iterations_array[cycle_lengths_iterations_array >= 0]
@@ -54,13 +61,13 @@ if __name__ == '__main__':
         ax1.plot(cycle_lengths_iterations_array, cycle_lengths_array, '-')
         ax1.axhline(
             y=cycle_lengths_array[0],
-            label=f"początkowa długość = {cycle_lengths_array[0]:.2f}",
+            label=f"początkowa długość = {cycle_lengths_array[0]}",
             color='r',
             linestyle='--'
         )
         ax1.axhline(
             y=cycle_lengths_array[-1],
-            label=f"końcowa długość = {cycle_lengths_array[-1]:.2f}",
+            label=f"końcowa długość = {cycle_lengths_array[-1]}",
             color='g',
             linestyle='--'
         )
@@ -86,13 +93,13 @@ if __name__ == '__main__':
         )
         # ax2.axhline(
         #     y=cycle_lengths_array[0],
-        #     label=f"początkowa długość = {cycle_lengths_array[0]:.2f}",
+        #     label=f"początkowa długość = {cycle_lengths_array[0]}",
         #     color='r',
         #     linestyle='--'
         # )
         ax2.axhline(
             y=cycle_lengths_array[-1],
-            label=f"końcowa długość = {cycle_lengths_array[-1]:.2f}",
+            label=f"końcowa długość = {cycle_lengths_array[-1]}",
             color='g',
             linestyle='--'
         )
