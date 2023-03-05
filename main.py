@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # np.savetxt("starting_cycle.dat", starting_cycle, fmt="%i")
 
-    initial_population_array = [nearest_neighbour(distance_matrix) for _ in range(2000)]
+    initial_population_array = [nearest_neighbour(distance_matrix) for _ in range(200)]
     # initial_population_array = np.zeros(shape=(200, number_of_points+1))
     # for i in range(200):
     #     starting_cycle: np.ndarray = np.arange(number_of_points)
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     algorithm = GeneticAlgorithm(
         distance_matrix=distance_matrix,
         max_iterations=10*distance_matrix.shape[0],
-        num_parents_mating=1000,
+        num_parents_mating=100,
         # sol_per_pop=200,
         mutation_probability=5e-2,
         parent_selection_type="tournament",

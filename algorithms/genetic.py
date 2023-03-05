@@ -55,7 +55,7 @@ class GeneticAlgorithm:
         return calculate_fitness
 
     def get_best_solution(self):
-        return self.ga_instance.best_solution()
+        return self.ga_instance.best_solution()[0]
 
     def find_shortest_cycle(self):
         self.run()
