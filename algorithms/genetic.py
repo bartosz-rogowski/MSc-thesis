@@ -73,47 +73,45 @@ class GeneticAlgorithm:
 
 
 def crossover_wrapper(parents, offspring_size, ga_instance):
-    return np.array(partially_matched_crossover(parents, offspring_size))
-
-
-@njit
-def partially_matched_crossover(parents, offspring_size):
     offspring_list = []
     idx = 0
     while idx != offspring_size[0]:
         parent1 = parents[idx % len(parents), :].copy()
         parent2 = parents[(idx + 1) % len(parents), :].copy()
 
-        locus1, locus2 = np.sort(
-            np.random.choice(np.arange(len(parent1)), size=2, replace=False)
-        )
-
-        def generate_offspring(parent_1, parent_2):
-            offspring = np.zeros(
-                shape=(len(parent_1),),
-                dtype=type(parent_1[0])
-            )
-
-            offspring[locus1:locus2] = parent_2[locus1:locus2]
-
-            outer_locus_list = np.concatenate((
-                np.arange(0, locus1),
-                np.arange(locus2, len(parent_1)-1)
-            ),)
-
-            for i in outer_locus_list:
-                candidate = parent_1[i]
-                while candidate in parent_2[locus1:locus2]:
-                    candidate = parent_1[np.where(parent_2 == candidate)[0][0]]
-                offspring[i] = candidate
-            # print(f"{parent_1 = }\t{parent_2 = }\t{offspring = }")
-            return offspring
-
-        offspring_list.append(generate_offspring(parent1, parent2))
-        # offspring_list.append(generate_offspring(parent2, parent1))
+        offspring_list.append(partially_matched_crossover(parent1, parent2))
+        # offspring_list.append(partially_matched_crossover(parent2, parent1))
         idx += 1
+    return np.array(offspring_list)
 
-    return offspring_list
+
+@njit
+def partially_matched_crossover(parent_1, parent_2):
+
+    locus1, locus2 = np.sort(
+        np.random.choice(np.arange(len(parent_1)), size=2, replace=False)
+    )
+
+    offspring = np.zeros(
+        shape=(len(parent_1),),
+        dtype=type(parent_1[0])
+    )
+
+    offspring[locus1:locus2] = parent_2[locus1:locus2]
+
+    outer_locus_list = np.concatenate((
+        np.arange(0, locus1),
+        np.arange(locus2, len(parent_1)-1)
+    ),)
+
+    for i in outer_locus_list:
+        candidate = parent_1[i]
+        while candidate in parent_2[locus1:locus2]:
+            candidate = parent_1[np.where(parent_2 == candidate)[0][0]]
+        offspring[i] = candidate
+    print("offspring =", offspring)
+    return offspring
+
 
 
 # to main.py:
