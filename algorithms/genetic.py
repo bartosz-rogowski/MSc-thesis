@@ -19,11 +19,10 @@ class GeneticAlgorithm:
         self.ga_instance = pygad.GA(
             fitness_func=self.__calculate_fitness_wrapper(),
             gene_space=gene_space,
-            crossover_type=crossover_wrapper,
-            mutation_type=swap_mutation,
             num_generations=self.MAX_ITERATIONS,
-            # num_genes=self.n, # removable
             gene_type=np.int16,
+            crossover_type=self.__crossover_wrapper(),
+            mutation_type=self.__mutation_wrapper(),
             on_fitness=self.__on_fitness_wrapper(),
             on_generation=self.__on_generation_wrapper(),
             **kwargs
@@ -72,6 +71,27 @@ class GeneticAlgorithm:
 
         return on_generation
 
+    def __crossover_wrapper(self):
+        def crossover(parents, offspring_size, ga_instance):
+            offspring_list = []
+            idx = 0
+            while idx != offspring_size[0]:
+                parent1 = parents[idx % len(parents), :].copy()
+                parent2 = parents[(idx + 1) % len(parents), :].copy()
+
+                offspring_list.append(partially_matched_crossover(parent1, parent2))
+                # offspring_list.append(partially_matched_crossover(parent2, parent1))
+                idx += 1
+            return np.array(offspring_list)
+        return crossover
+
+    def __mutation_wrapper(self):
+        def mutation(offspring, ga_instance):
+            for idx in range(offspring.shape[0]):
+                offspring[idx] = swap_mutation(offspring[idx])
+            return offspring
+        return mutation
+
     def get_best_solution(self):
         return self.ga_instance.best_solution()[0]
 
@@ -84,7 +104,7 @@ class GeneticAlgorithm:
         plt.plot(self.ga_instance.best_solutions_fitness, marker='.')
         plt.xlabel("numer pokolenia")
         plt.ylabel("wartość funkcji przystosowania")
-        plt.title("Wartość przystosowania w funkcji numeru pokolenia")
+        plt.title("Wartość najlepszego przystosowania w funkcji numeru pokolenia")
         # plt.ylim((-0.05, 1.05))
         plt.grid()
         return plt.gcf()
@@ -98,37 +118,6 @@ class GeneticAlgorithm:
         # plt.ylim((-0.05, 1.05))
         plt.grid()
         return plt.gcf()
-
-
-def crossover_wrapper(parents, offspring_size, ga_instance):
-    offspring_list = []
-    idx = 0
-    while idx != offspring_size[0]:
-        parent1 = parents[idx % len(parents), :].copy()
-        parent2 = parents[(idx + 1) % len(parents), :].copy()
-
-        offspring_list.append(partially_matched_crossover(parent1, parent2))
-        # offspring_list.append(partially_matched_crossover(parent2, parent1))
-        idx += 1
-    return np.array(offspring_list)
-
-
-def swap_mutation(offspring, ga_instance):
-    """Performs swap mutation on the offspring.
-    Two indices (genes loci) are drawn (from 0 to len(solution)-1).
-    """
-    for idx in range(offspring.shape[0]):
-        index1, index2 = -1, -1
-        while index1 == index2:
-            index1 = np.random.randint(low=0, high=offspring.shape[1]-1)
-            index2 = np.random.randint(low=0, high=offspring.shape[1]-1)
-        temp = offspring[idx, index1]
-        offspring[idx, index1] = offspring[idx, index2]
-        offspring[idx, index2] = temp
-        if index1 == 0 or index2 == 0:
-            offspring[idx, -1] = offspring[idx, 0]
-
-    return offspring
 
 
 @njit
@@ -163,3 +152,14 @@ def partially_matched_crossover(parent_1, parent_2, locus1=-1, locus2=-1):
     # cycle has the same first and last element - the last one have to be the same as first
     offspring[-1] = offspring[0]
     return offspring
+
+
+@njit
+def swap_mutation(solution):
+    index1, index2 = np.sort(
+        np.random.choice(np.arange(len(solution) - 1), size=2, replace=False)
+    )
+    solution[index1], solution[index2] = solution[index2], solution[index1]
+    if index1 == 0:
+        solution[-1] = solution[0]
+    return solution

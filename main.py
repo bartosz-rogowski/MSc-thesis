@@ -39,12 +39,10 @@ if __name__ == '__main__':
     #     initial_population_array[i] = starting_cycle
     algorithm = GeneticAlgorithm(
         distance_matrix=distance_matrix,
-        max_iterations=500,#*distance_matrix.shape[0],
+        max_iterations=500,
         num_parents_mating=100,
-        # sol_per_pop=200,
         mutation_probability=5e-2,
         parent_selection_type="tournament",
-        # mutation_type="swap",
         keep_elitism=10,
         initial_population=initial_population_array,
     )
