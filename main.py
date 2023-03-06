@@ -39,12 +39,12 @@ if __name__ == '__main__':
     #     initial_population_array[i] = starting_cycle
     algorithm = GeneticAlgorithm(
         distance_matrix=distance_matrix,
-        max_iterations=100,#*distance_matrix.shape[0],
+        max_iterations=500,#*distance_matrix.shape[0],
         num_parents_mating=100,
         # sol_per_pop=200,
         mutation_probability=5e-2,
         parent_selection_type="tournament",
-        mutation_type="swap",
+        # mutation_type="swap",
         keep_elitism=10,
         initial_population=initial_population_array,
     )
@@ -65,6 +65,8 @@ if __name__ == '__main__':
     # print(f"{shortest_cycle_length = }")
     print(f"{shortest_cycle = }")
     print(f"Algorithm ran for {(alg_end_time - alg_start_time):.3f} seconds")
+    assert len(set(shortest_cycle)) == len(shortest_cycle) - 1, "More than 1 double element"
+    assert shortest_cycle[0] == shortest_cycle[-1], "Not a cycle"
 
     visualiser = Visualiser(points=points, distance_matrix=distance_matrix)
     # visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
@@ -140,4 +142,5 @@ if __name__ == '__main__':
     # print(cycle_lengths_iterations_array[-100:])
     # print(cycle_lengths_array[-100:])
     algorithm.plot_fitness_function()
+    algorithm.plot_average_fitness_per_epoch()
     plt.show()

@@ -14,15 +14,18 @@ class GeneticAlgorithm:
         self.MAX_ITERATIONS = max_iterations
         self.n = len(self.distance_matrix)
         gene_space = [i for i in range(self.n)]
+        self.generation_fitness_per_epoch = np.zeros(shape=(max_iterations+1,))
 
         self.ga_instance = pygad.GA(
             fitness_func=self.__calculate_fitness_wrapper(),
             gene_space=gene_space,
             crossover_type=crossover_wrapper,
+            mutation_type=swap_mutation,
             num_generations=self.MAX_ITERATIONS,
             # num_genes=self.n, # removable
             gene_type=np.int16,
-            # allow_duplicate_genes=False,
+            on_fitness=self.__on_fitness_wrapper(),
+            on_generation=self.__on_generation_wrapper(),
             **kwargs
         )
 
@@ -49,10 +52,25 @@ class GeneticAlgorithm:
         """
         def calculate_fitness(solution: np.ndarray, solution_idx: int) -> float:
             cycle_length: float = self.calculate_cycle_length(solution)
-            # print("cycle_length =", cycle_length)
-            fitness: float = 1./cycle_length
+            fitness: float = 1./np.log10(cycle_length)
             return fitness
         return calculate_fitness
+
+    def __on_fitness_wrapper(self):
+        def on_fitness(ga_instance, population_fitness):
+            if ga_instance.generations_completed == 0:
+                fitness = np.average(ga_instance.last_generation_fitness)
+                self.generation_fitness_per_epoch[0] = fitness
+        return on_fitness
+
+    def __on_generation_wrapper(self):
+        def on_generation(ga_instance):
+            fitness = np.average(ga_instance.last_generation_fitness)
+            epoch = ga_instance.generations_completed
+            print("epoch =", epoch)
+            self.generation_fitness_per_epoch[epoch] = fitness
+
+        return on_generation
 
     def get_best_solution(self):
         return self.ga_instance.best_solution()[0]
@@ -71,6 +89,16 @@ class GeneticAlgorithm:
         plt.grid()
         return plt.gcf()
 
+    def plot_average_fitness_per_epoch(self):
+        plt.figure(figsize=(10, 6))
+        plt.plot(self.generation_fitness_per_epoch, marker='.')
+        plt.xlabel("numer pokolenia")
+        plt.ylabel("wartość średniego przystosowania populacji")
+        plt.title("Średnia wartość przystosowania populacji w funkcji numeru pokolenia")
+        # plt.ylim((-0.05, 1.05))
+        plt.grid()
+        return plt.gcf()
+
 
 def crossover_wrapper(parents, offspring_size, ga_instance):
     offspring_list = []
@@ -85,46 +113,53 @@ def crossover_wrapper(parents, offspring_size, ga_instance):
     return np.array(offspring_list)
 
 
-@njit
-def partially_matched_crossover(parent_1, parent_2):
+def swap_mutation(offspring, ga_instance):
+    """Performs swap mutation on the offspring.
+    Two indices (genes loci) are drawn (from 0 to len(solution)-1).
+    """
+    for idx in range(offspring.shape[0]):
+        index1, index2 = -1, -1
+        while index1 == index2:
+            index1 = np.random.randint(low=0, high=offspring.shape[1]-1)
+            index2 = np.random.randint(low=0, high=offspring.shape[1]-1)
+        temp = offspring[idx, index1]
+        offspring[idx, index1] = offspring[idx, index2]
+        offspring[idx, index2] = temp
+        if index1 == 0 or index2 == 0:
+            offspring[idx, -1] = offspring[idx, 0]
 
-    locus1, locus2 = np.sort(
-        np.random.choice(np.arange(len(parent_1)), size=2, replace=False)
-    )
+    return offspring
+
+
+@njit
+def partially_matched_crossover(parent_1, parent_2, locus1=-1, locus2=-1):
+    if locus1 >= locus2:
+        locus1, locus2 = np.sort(
+            np.random.choice(np.arange(len(parent_1)), size=2, replace=False)
+        )
 
     offspring = np.zeros(
         shape=(len(parent_1),),
         dtype=type(parent_1[0])
     )
 
-    offspring[locus1:locus2] = parent_2[locus1:locus2]
+    # cycle has the same first and last element - the last one need to be cut
+    parent_1 = parent_1[:-1]
+    parent_2 = parent_2[:-1]
+
+    offspring[locus1:locus2] = parent_1[locus1:locus2]
 
     outer_locus_list = np.concatenate((
         np.arange(0, locus1),
-        np.arange(locus2, len(parent_1)-1)
+        np.arange(locus2, len(parent_1))
     ),)
 
     for i in outer_locus_list:
-        candidate = parent_1[i]
-        while candidate in parent_2[locus1:locus2]:
-            candidate = parent_1[np.where(parent_2 == candidate)[0][0]]
+        candidate = parent_2[i]
+        while candidate in parent_1[locus1:locus2]:
+            candidate = parent_2[np.where(parent_1 == candidate)[0][0]]
         offspring[i] = candidate
-    print("offspring =", offspring)
+
+    # cycle has the same first and last element - the last one have to be the same as first
+    offspring[-1] = offspring[0]
     return offspring
-
-
-
-# to main.py:
-#
-# initial_population_array = [nearest_neighbour(distance_matrix) for _ in range(200)]
-#     algorithm = GeneticAlgorithm(
-#         distance_matrix=distance_matrix,
-#         max_iterations=2*distance_matrix.shape[0]**2,
-#         num_parents_mating=50,
-#         # sol_per_pop=200,
-#         mutation_probability=5e-2,
-#         parent_selection_type="tournament",
-#         mutation_type="swap",
-#         keep_elitism=10,
-#         initial_population=initial_population_array,
-#     )
