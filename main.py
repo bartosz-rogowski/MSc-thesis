@@ -11,7 +11,7 @@ from tools.visualisers import Visualiser
 if __name__ == '__main__':
     app_start_time = perf_counter()
 
-    number_of_points: int = 100
+    number_of_points: int = 500
     precision: int = 3  # of cycle length
 
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
@@ -58,10 +58,10 @@ if __name__ == '__main__':
     alg_start_time = perf_counter()
     # shortest_cycle, shortest_cycle_length, cycle_lengths_array, cycle_lengths_iterations_array \
     #     = algorithm.find_shortest_cycle(precision)
-    shortest_cycle = algorithm.find_shortest_cycle()
+    shortest_cycle, shortest_cycle_length = algorithm.find_shortest_cycle(precision)
     alg_end_time = perf_counter()
-    # print(f"{shortest_cycle_length = }")
-    print(f"{shortest_cycle = }")
+    print(f"{shortest_cycle_length = }")
+    # print(f"{shortest_cycle = }")
     print(f"Algorithm ran for {(alg_end_time - alg_start_time):.3f} seconds")
     assert len(set(shortest_cycle)) == len(shortest_cycle) - 1, "More than 1 double element"
     assert shortest_cycle[0] == shortest_cycle[-1], "Not a cycle"

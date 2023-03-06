@@ -66,7 +66,8 @@ class GeneticAlgorithm:
         def on_generation(ga_instance):
             fitness = np.average(ga_instance.last_generation_fitness)
             epoch = ga_instance.generations_completed
-            print("epoch =", epoch)
+            if epoch % 10 == 0:
+                print("epoch =", epoch)
             self.generation_fitness_per_epoch[epoch] = fitness
 
         return on_generation
@@ -95,9 +96,11 @@ class GeneticAlgorithm:
     def get_best_solution(self):
         return self.ga_instance.best_solution()[0]
 
-    def find_shortest_cycle(self):
+    def find_shortest_cycle(self, precision: int):
         self.run()
-        return self.get_best_solution()
+        best_solution = self.get_best_solution()
+        length: float = round(self.calculate_cycle_length(best_solution), precision)
+        return best_solution, length
 
     def plot_fitness_function(self):
         plt.figure(figsize=(10, 6))
