@@ -51,7 +51,7 @@ class GeneticAlgorithm:
         """
         def calculate_fitness(solution: np.ndarray, solution_idx: int) -> float:
             cycle_length: float = self.calculate_cycle_length(solution)
-            fitness: float = 1./np.log10(cycle_length)
+            fitness: float = 1./cycle_length
             return fitness
         return calculate_fitness
 
@@ -145,11 +145,13 @@ def partially_matched_crossover(parent_1, parent_2, locus1=-1, locus2=-1):
         np.arange(0, locus1),
         np.arange(locus2, len(parent_1))
     ),)
-
+    map = {}
+    for locus in range(locus1, locus2):
+        map[parent_1[locus]] = parent_2[locus]
     for i in outer_locus_list:
         candidate = parent_2[i]
         while candidate in parent_1[locus1:locus2]:
-            candidate = parent_2[np.where(parent_1 == candidate)[0][0]]
+            candidate = map[candidate]
         offspring[i] = candidate
 
     # cycle has the same first and last element - the last one have to be the same as first
