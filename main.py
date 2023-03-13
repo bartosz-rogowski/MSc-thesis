@@ -45,6 +45,7 @@ if __name__ == '__main__':
         parent_selection_type="tournament",
         keep_elitism=10,
         initial_population=initial_population_array,
+        # parallel_processing=["thread", 4],
     )
 
     # algorithm = SimulatedAnnealing(
