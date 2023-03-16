@@ -142,4 +142,5 @@ if __name__ == '__main__':
     # print(cycle_lengths_array[-100:])
     algorithm.plot_fitness_function()
     algorithm.plot_average_fitness_per_epoch()
+    # algorithm.summarize()
     plt.show()
