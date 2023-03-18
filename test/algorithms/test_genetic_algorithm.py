@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 from algorithms.genetic import GeneticAlgorithm, partially_matched_crossover, \
-    edge_recombination_crossover
+    edge_recombination_crossover, order_crossover
 
 
 class GeneticAlgorithmTest(unittest.TestCase):
@@ -28,6 +28,24 @@ class GeneticAlgorithmTest(unittest.TestCase):
         parent_1 = np.append(parent_1, parent_1[0])
         parent_2 = np.append(parent_2, parent_2[0])
         child = edge_recombination_crossover(parent_1, parent_2)
+        self.assertEqual(len(set(child)), number_of_points)
+        self.assertEqual(child[0], child[-1])
+
+    def test_OX1(self):
+        parent1 = np.array([1, 2, 3, 4, 5, 6, 7, 8, 1])
+        parent2 = np.array([2, 4, 6, 8, 7, 5, 3, 1, 2])
+        result = np.array([8, 7, 3, 4, 5, 1, 2, 6, 8])
+        child = order_crossover(parent1, parent2, locus1=2, locus2=5)
+        assert_array_equal(result, child)
+
+        number_of_points = 500
+        parent_1 = np.arange(number_of_points)
+        parent_2 = np.arange(number_of_points)
+        np.random.shuffle(parent_1)
+        np.random.shuffle(parent_2)
+        parent_1 = np.append(parent_1, parent_1[0])
+        parent_2 = np.append(parent_2, parent_2[0])
+        child = order_crossover(parent_1, parent_2)
         self.assertEqual(len(set(child)), number_of_points)
         self.assertEqual(child[0], child[-1])
 

@@ -11,7 +11,7 @@ from tools.visualisers import Visualiser
 if __name__ == '__main__':
     app_start_time = perf_counter()
 
-    number_of_points: int = 500
+    number_of_points: int = 200
     precision: int = 3  # of cycle length
 
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
@@ -43,7 +43,7 @@ if __name__ == '__main__':
         num_parents_mating=100,
         mutation_probability=5e-2,
         parent_selection_type="tournament",
-        keep_elitism=10,
+        keep_elitism=50,
         initial_population=initial_population_array,
         # parallel_processing=["thread", 4],
     )

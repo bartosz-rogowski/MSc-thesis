@@ -203,7 +203,7 @@ def edge_recombination_crossover(parent_1, parent_2):
         direct_neighbours_list = direct_neighbours_dict.pop(edge)
 
         for key, value in direct_neighbours_dict.items():
-            idx: int = np.where(value == edge)[0]  # indices array
+            idx: np.ndarray = np.where(value == edge)[0]  # indices array
             if idx.size > 0:
                 direct_neighbours_dict[key] = np.delete(
                     direct_neighbours_dict[key],
@@ -234,8 +234,45 @@ def edge_recombination_crossover(parent_1, parent_2):
                 break
             edge = np.random.choice(np.array(candidates), size=1, replace=True)[0]
         i += 1
+
+    # cycle has the same first and last element - the last one have to be the same as first
     child[-1] = child[0]
     return child
+
+
+@njit
+def order_crossover(parent_1, parent_2, locus1=-1, locus2=-1):
+    parents_length: int = len(parent_1)
+
+    if locus1 >= locus2:
+        locus1, locus2 = np.sort(
+            np.random.choice(np.arange(parents_length), size=2, replace=False)
+        )
+
+    child = -1 * np.ones(
+        shape=(parents_length,),
+        dtype=type(parent_1[0])
+    )
+
+    # cycle has the same first and last element - the last one need to be cut
+    parent_1 = parent_1[:-1]
+    parent_2 = parent_2[:-1]
+
+    child[locus1:locus2] = parent_1[locus1:locus2]
+
+    idx_in_parent_2: int = locus2
+
+    for i in range(parents_length - 1 - (locus2 - locus1)):
+        idx: int = (locus2 + i) % (parents_length - 1)
+        value: int = parent_2[idx_in_parent_2]
+        while value in child:
+            idx_in_parent_2 = (idx_in_parent_2 + 1) % (parents_length - 1)
+            value = parent_2[idx_in_parent_2]
+        child[idx] = value
+
+    child[-1] = child[0]
+    return child
+
 
 @njit
 def swap_mutation(solution):
