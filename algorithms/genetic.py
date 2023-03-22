@@ -73,6 +73,22 @@ class GeneticAlgorithm:
                 print("epoch =", epoch)
             self.generation_fitness_per_epoch[epoch] = fitness
 
+            # applying untwist operator
+            idx: int = np.random.choice(len(ga_instance.population), size=1, replace=True)[0]
+            solution: np.ndarray = ga_instance.population[idx]
+            tries: int = 10
+            while tries > 0:
+                locus1, locus2 = np.random.choice(np.arange(1, len(solution) - 1), size=2, replace=False)
+                condition: bool = self.distance_matrix[solution[locus1], solution[locus1 - 1]] \
+                                  + self.distance_matrix[solution[locus2 + 1], solution[locus2]] \
+                                  > self.distance_matrix[solution[locus2], solution[locus1 - 1]] \
+                                  + self.distance_matrix[solution[locus2 + 1], solution[locus1]]
+                if condition:
+                    print("applying untwisting")
+                    ga_instance.population[idx] = untwist_operator(solution, locus1=locus1, locus2=locus2)
+                    break
+                tries -= 1
+
         return on_generation
 
     def __crossover_wrapper(self):
@@ -169,7 +185,6 @@ def partially_matched_crossover(parent_1, parent_2, locus1=-1, locus2=-1):
 
 @njit
 def edge_recombination_crossover(parent_1, parent_2):
-
     # cycle has the same first and last element - the last one need to be cut
     parent_1 = parent_1[:-1]
     parent_2 = parent_2[:-1]
@@ -177,7 +192,7 @@ def edge_recombination_crossover(parent_1, parent_2):
     parents_length: int = len(parent_1)
 
     child = -1 * np.ones(
-        shape=(parents_length+1,),
+        shape=(parents_length + 1,),
         dtype=type(parent_1[0])
     )
 
@@ -282,4 +297,26 @@ def swap_mutation(solution):
     solution[index1], solution[index2] = solution[index2], solution[index1]
     if index1 == 0:
         solution[-1] = solution[0]
+    return solution
+
+
+@njit
+def untwist_operator(solution, locus1=-1, locus2=-1):
+    solution_length = len(solution[:-1])
+    if locus1 >= locus2:
+        locus1, locus2 = np.sort(
+            np.random.choice(np.arange(solution_length), size=2, replace=False)
+        )
+    # new_solution = solution.copy()
+    # for _idx in range(locus2 - locus1 + 1):
+    #     idx = locus2 + locus1 - locus1 - _idx
+    #     new_solution[locus1 + _idx] = solution[idx]
+
+    for _idx in range((locus2 - locus1 + 1) // 2):
+        idx = locus2 + locus1 - locus1 - _idx
+        value = solution[locus1 + _idx]
+        solution[locus1 + _idx] = solution[locus2 - _idx]
+        solution[locus2 - _idx] = value
+
+    solution[-1] = solution[0]
     return solution

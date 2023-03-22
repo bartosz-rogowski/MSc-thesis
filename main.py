@@ -11,7 +11,7 @@ from tools.visualisers import Visualiser
 if __name__ == '__main__':
     app_start_time = perf_counter()
 
-    number_of_points: int = 200
+    number_of_points: int = 500
     precision: int = 3  # of cycle length
 
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     #     initial_population_array[i] = starting_cycle
     algorithm = GeneticAlgorithm(
         distance_matrix=distance_matrix,
-        max_iterations=500,
+        max_iterations=50_000,
         num_parents_mating=100,
         mutation_probability=5e-2,
         parent_selection_type="tournament",

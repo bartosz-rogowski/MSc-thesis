@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 from algorithms.genetic import GeneticAlgorithm, partially_matched_crossover, \
-    edge_recombination_crossover, order_crossover
+    edge_recombination_crossover, order_crossover, untwist_operator
 
 
 class GeneticAlgorithmTest(unittest.TestCase):
@@ -48,6 +48,13 @@ class GeneticAlgorithmTest(unittest.TestCase):
         child = order_crossover(parent_1, parent_2)
         self.assertEqual(len(set(child)), number_of_points)
         self.assertEqual(child[0], child[-1])
+
+    def test_untwist_operator(self):
+        solution = np.array([2, 3, 4, 9, 8, 7, 6, 5, 1, 2])
+        result = np.array([2, 3, 4, 5, 6, 7, 8, 9, 1, 2])
+        new_solution = untwist_operator(solution, locus1=3, locus2=7)
+        assert_array_equal(result, new_solution)
+
 
 if __name__ == '__main__':
     unittest.main()
