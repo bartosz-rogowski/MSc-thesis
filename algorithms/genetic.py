@@ -9,14 +9,19 @@ class GeneticAlgorithm:
     def __init__(self,
                  distance_matrix: np.ndarray,
                  max_iterations: int,
+                 initial_population: np.ndarray,
                  **kwargs):
         self.distance_matrix = distance_matrix
         self.MAX_ITERATIONS = max_iterations
         self.n = len(self.distance_matrix)
         gene_space = [i for i in range(self.n)]
         self.generation_fitness_per_epoch = np.zeros(shape=(max_iterations + 1,))
+        self.best_solution = np.empty_like(initial_population[0])
+        self.best_solution_fitness: float = 0.0
+        self.best_solution_generation: int = -1
 
         self.ga_instance = pygad.GA(
+            initial_population=initial_population,
             fitness_func=self.__calculate_fitness_wrapper(),
             gene_space=gene_space,
             num_generations=self.MAX_ITERATIONS,
@@ -69,7 +74,7 @@ class GeneticAlgorithm:
         def on_generation(ga_instance):
             fitness = np.average(ga_instance.last_generation_fitness)
             epoch = ga_instance.generations_completed
-            if epoch % 10 == 0:
+            if epoch % 100 == 0:
                 print("epoch =", epoch)
             self.generation_fitness_per_epoch[epoch] = fitness
 
@@ -84,10 +89,18 @@ class GeneticAlgorithm:
                                   > self.distance_matrix[solution[locus2], solution[locus1 - 1]] \
                                   + self.distance_matrix[solution[locus2 + 1], solution[locus1]]
                 if condition:
-                    print("applying untwisting")
+                    # print("applying untwisting")
                     ga_instance.population[idx] = untwist_operator(solution, locus1=locus1, locus2=locus2)
                     break
                 tries -= 1
+            # end of while
+
+            # saving best solution
+            solution, fitness = self.ga_instance.best_solution()[:2]
+            if fitness > self.best_solution_fitness:
+                self.best_solution = solution
+                self.best_solution_fitness = fitness
+                self.best_solution_generation = epoch
 
         return on_generation
 
@@ -115,11 +128,13 @@ class GeneticAlgorithm:
         return mutation
 
     def get_best_solution(self):
-        return self.ga_instance.best_solution()[0]
+        # return self.ga_instance.best_solution()[0]
+        return self.best_solution, self.best_solution_fitness, self.best_solution_generation
 
     def find_shortest_cycle(self, precision: int):
         self.run()
-        best_solution = self.get_best_solution()
+        # best_solution = self.get_best_solution()
+        best_solution: np.ndarray = self.get_best_solution()[0]
         length: float = round(self.calculate_cycle_length(best_solution), precision)
         return best_solution, length
 

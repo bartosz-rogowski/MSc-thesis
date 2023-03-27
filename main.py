@@ -13,6 +13,7 @@ if __name__ == '__main__':
 
     number_of_points: int = 500
     precision: int = 3  # of cycle length
+    ga_number_of_parents: int = 200  # for genetic algorithm
 
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
     points, distance_matrix = load_points_from_file(
@@ -30,21 +31,23 @@ if __name__ == '__main__':
 
     # np.savetxt("starting_cycle.dat", starting_cycle, fmt="%i")
 
-    initial_population_array = [nearest_neighbour(distance_matrix) for _ in range(200)]
-    # initial_population_array = np.zeros(shape=(200, number_of_points+1))
-    # for i in range(200):
+    initial_population_array = np.array(
+        [nearest_neighbour(distance_matrix) for _ in range(ga_number_of_parents)]
+    )
+    # initial_population_array = np.zeros(shape=(ga_number_of_parents, number_of_points+1))
+    # for i in range(ga_number_of_parents):
     #     starting_cycle: np.ndarray = np.arange(number_of_points)
     #     np.random.shuffle(starting_cycle)
     #     starting_cycle = np.append(starting_cycle, starting_cycle[0])
     #     initial_population_array[i] = starting_cycle
     algorithm = GeneticAlgorithm(
         distance_matrix=distance_matrix,
-        max_iterations=50_000,
-        num_parents_mating=100,
+        max_iterations=500,
+        initial_population=initial_population_array,
+        num_parents_mating=ga_number_of_parents//2,
         mutation_probability=5e-2,
         parent_selection_type="tournament",
         keep_elitism=50,
-        initial_population=initial_population_array,
         # parallel_processing=["thread", 4],
     )
 
