@@ -2,7 +2,8 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 from algorithms.genetic import GeneticAlgorithm, partially_matched_crossover, \
-    edge_recombination_crossover, order_crossover, untwist_operator
+    edge_recombination_crossover, order_crossover, untwist_operator, \
+    displacement_mutation
 
 
 class GeneticAlgorithmTest(unittest.TestCase):
@@ -54,6 +55,16 @@ class GeneticAlgorithmTest(unittest.TestCase):
         result = np.array([2, 3, 4, 5, 6, 7, 8, 9, 1, 2])
         new_solution = untwist_operator(solution, locus1=3, locus2=7)
         assert_array_equal(result, new_solution)
+
+    def test_displacement_mutation(self):
+        number_of_points = 500
+        for _ in range(20):
+            solution = np.arange(number_of_points)
+            np.random.shuffle(solution)
+            solution = np.append(solution, solution[0])
+            mutated_solution = displacement_mutation(solution)
+            self.assertEqual(len(set(mutated_solution)), number_of_points)
+            self.assertEqual(mutated_solution[0], mutated_solution[-1])
 
 
 if __name__ == '__main__':

@@ -26,8 +26,13 @@ class GeneticAlgorithm:
             gene_space=gene_space,
             num_generations=self.MAX_ITERATIONS,
             gene_type=np.int16,
-            crossover_type=self.__crossover_wrapper(),
-            mutation_type=self.__mutation_wrapper(),
+            crossover_type=self.__crossover_wrapper(
+                crossover_func=partially_matched_crossover,
+            ),
+            mutation_type=self.__mutation_wrapper(
+                mutation_func=swap_mutation,
+                # num_of_elements_to_displace=1  # displacement_mutation arg
+            ),
             on_fitness=self.__on_fitness_wrapper(),
             on_generation=self.__on_generation_wrapper(),
             **kwargs
@@ -104,25 +109,27 @@ class GeneticAlgorithm:
 
         return on_generation
 
-    def __crossover_wrapper(self):
+    def __crossover_wrapper(self, crossover_func):
         def crossover(parents, offspring_size, ga_instance):
             offspring_list = []
             idx = 0
             while idx != offspring_size[0]:
                 parent1 = parents[idx % len(parents), :].copy()
                 parent2 = parents[(idx + 1) % len(parents), :].copy()
+                offspring1 = crossover_func(parent1, parent2)
+                # offspring2 = crossover_func(parent2, parent1)
 
-                offspring_list.append(partially_matched_crossover(parent1, parent2))
-                # offspring_list.append(partially_matched_crossover(parent2, parent1))
+                offspring_list.append(offspring1)
+                # offspring_list.append(offspring2)
                 idx += 1
             return np.array(offspring_list)
 
         return crossover
 
-    def __mutation_wrapper(self):
+    def __mutation_wrapper(self, mutation_func, **kwargs):
         def mutation(offspring, ga_instance):
             for idx in range(offspring.shape[0]):
-                offspring[idx] = swap_mutation(offspring[idx])
+                offspring[idx] = mutation_func(offspring[idx], **kwargs)
             return offspring
 
         return mutation
@@ -333,5 +340,31 @@ def untwist_operator(solution, locus1=-1, locus2=-1):
         solution[locus1 + _idx] = solution[locus2 - _idx]
         solution[locus2 - _idx] = value
 
+    solution[-1] = solution[0]
+    return solution
+
+
+@njit
+def displacement_mutation(solution, num_of_elements_to_displace=0):
+    if num_of_elements_to_displace < 1:
+        num_of_elements_to_displace = np.random.choice(
+            np.arange(1, len(solution) // 2),
+            size=1,
+            replace=True
+        )[0]
+    start_index, new_start_index = np.sort(
+        np.random.choice(
+            np.arange(len(solution) - num_of_elements_to_displace),
+            size=2,
+            replace=False
+        )
+    )
+    #
+    subpath: np.ndarray = solution[start_index:start_index + num_of_elements_to_displace].copy()
+    #
+    for i in range(start_index, new_start_index):
+        solution[i] = solution[i + num_of_elements_to_displace]
+    new_end_index: int = new_start_index + num_of_elements_to_displace
+    solution[new_start_index:new_end_index] = subpath
     solution[-1] = solution[0]
     return solution
