@@ -1,9 +1,10 @@
 import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
-from algorithms.genetic import GeneticAlgorithm, partially_matched_crossover, \
-    edge_recombination_crossover, order_crossover, untwist_operator, \
-    displacement_mutation
+from algorithms.genetic import untwist_operator
+from algorithms.genetic_operators.crossovers import partially_matched_crossover, \
+    edge_recombination_crossover, order_crossover
+from algorithms.genetic_operators.mutations import displacement_mutation
 
 
 class GeneticAlgorithmTest(unittest.TestCase):
