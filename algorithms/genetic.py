@@ -119,8 +119,10 @@ class GeneticAlgorithm:
                 offspring1 = crossover_func(parent1, parent2)
                 # offspring2 = crossover_func(parent2, parent1)
 
+                # if self.calculate_cycle_length(offspring1) < self.calculate_cycle_length(offspring2):
                 offspring_list.append(offspring1)
-                # offspring_list.append(offspring2)
+                # else:
+                #     offspring_list.append(offspring2)
                 idx += 1
             return np.array(offspring_list)
 
