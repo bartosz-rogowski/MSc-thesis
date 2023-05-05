@@ -84,6 +84,7 @@ class GeneticAlgorithm:
             self.generation_fitness_per_epoch[epoch] = fitness
 
             # applying untwist operator
+            # NOTE: uncommenting this block is easier than providing additional variable
             idx: int = np.random.choice(len(ga_instance.population), size=1, replace=True)[0]
             solution: np.ndarray = ga_instance.population[idx]
             tries: int = 10
