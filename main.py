@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from tools.manage_input_files \
-    import generate_coordinates_to_file, load_points_from_file
+    import generate_coordinates_to_file, load_points_from_file, load_points_from_tsp_file
 from tools.generate_starting_cycle import nearest_neighbour
 from algorithms.annealing import SimulatedAnnealing
 from algorithms.genetic import GeneticAlgorithm
@@ -11,13 +11,14 @@ from tools.visualisers import Visualiser
 if __name__ == '__main__':
     app_start_time = perf_counter()
 
-    number_of_points: int = 100
     precision: int = 3  # of cycle length
     ga_number_of_parents: int = 100  # for genetic algorithm
+    number_of_points: int = 100
 
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
-    points, distance_matrix = load_points_from_file(
-        f"{number_of_points}points.dat"
+    points, distance_matrix = load_points_from_tsp_file(
+        # f"{number_of_points}points.dat"
+        "eil101.tsp"
     )
     if points is None:
         raise Exception("points array is None")
