@@ -5,6 +5,7 @@ from tools.manage_input_files \
 from tools.generate_starting_cycle import nearest_neighbour
 from algorithms.annealing import SimulatedAnnealing
 from algorithms.genetic import GeneticAlgorithm
+from algorithms.reinforcement import QLearning
 from time import perf_counter
 from tools.visualisers import Visualiser
 
@@ -13,7 +14,7 @@ if __name__ == '__main__':
 
     precision: int = 3  # of cycle length
     ga_number_of_parents: int = 100  # for genetic algorithm
-    number_of_points: int = 100
+    # number_of_points: int = 50
 
     # generate_coordinates_to_file(number_of_points, f"{number_of_points}points")
     points, distance_matrix = load_points_from_tsp_file(
@@ -41,15 +42,22 @@ if __name__ == '__main__':
     #     np.random.shuffle(starting_cycle)
     #     starting_cycle = np.append(starting_cycle, starting_cycle[0])
     #     initial_population_array[i] = starting_cycle
-    algorithm = GeneticAlgorithm(
+    # algorithm = GeneticAlgorithm(
+    #     distance_matrix=distance_matrix,
+    #     max_iterations=5000,
+    #     initial_population=initial_population_array,
+    #     num_parents_mating=ga_number_of_parents//2,
+    #     mutation_probability=5e-2,
+    #     parent_selection_type="tournament",
+    #     keep_elitism=ga_number_of_parents//4,
+    #     # parallel_processing=["thread", 4],
+    # )
+
+    algorithm = QLearning(
         distance_matrix=distance_matrix,
-        max_iterations=5000,
-        initial_population=initial_population_array,
-        num_parents_mating=ga_number_of_parents//2,
-        mutation_probability=5e-2,
-        parent_selection_type="tournament",
-        keep_elitism=ga_number_of_parents//4,
-        # parallel_processing=["thread", 4],
+        max_iterations=900_000,
+        learning_rate=0.1,
+        discount_rate=0.1,
     )
 
     # algorithm = SimulatedAnnealing(
@@ -144,7 +152,7 @@ if __name__ == '__main__':
 
     # print(cycle_lengths_iterations_array[-100:])
     # print(cycle_lengths_array[-100:])
-    algorithm.plot_fitness_function()
-    algorithm.plot_average_fitness_per_epoch()
+    # algorithm.plot_fitness_function()
+    # algorithm.plot_average_fitness_per_epoch()
     # algorithm.summarize()
     plt.show()
