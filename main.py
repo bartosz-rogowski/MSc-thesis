@@ -55,9 +55,9 @@ if __name__ == '__main__':
 
     algorithm = QLearning(
         distance_matrix=distance_matrix,
-        max_iterations=900_000,
-        learning_rate=0.1,
-        discount_rate=0.1,
+        max_iterations=20_000,
+        learning_rate=0.01,
+        discount_rate=0.9,
     )
 
     # algorithm = SimulatedAnnealing(
@@ -69,9 +69,9 @@ if __name__ == '__main__':
     # )
 
     alg_start_time = perf_counter()
-    # shortest_cycle, shortest_cycle_length, cycle_lengths_array, cycle_lengths_iterations_array \
-    #     = algorithm.find_shortest_cycle(precision)
-    shortest_cycle, shortest_cycle_length = algorithm.find_shortest_cycle(precision)
+    shortest_cycle, shortest_cycle_length, cycle_lengths_array, cycle_lengths_iterations_array \
+        = algorithm.find_shortest_cycle(precision)
+    # shortest_cycle, shortest_cycle_length = algorithm.find_shortest_cycle(precision)
     alg_end_time = perf_counter()
     print(f"{shortest_cycle_length = }")
     # print(f"{shortest_cycle = }")
@@ -83,6 +83,13 @@ if __name__ == '__main__':
     # visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
     visualiser.create_cycle_figure(shortest_cycle, title="znaleziony cykl")
 
+    if cycle_lengths_iterations_array is None:
+        plt.figure(figsize=(12, 7))
+        plt.title("Długości cykli")
+        plt.plot(np.arange(len(cycle_lengths_array)), cycle_lengths_array, '-')
+        plt.xlabel("Numer iteracji całkowitej algorytmu")
+        plt.ylabel("Długość cyklu")
+        plt.grid()
     if False:
         cycle_lengths_array = cycle_lengths_array[cycle_lengths_array > 0]
         cycle_lengths_iterations_array = cycle_lengths_iterations_array[cycle_lengths_iterations_array >= 0]
