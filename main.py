@@ -53,20 +53,20 @@ if __name__ == '__main__':
     #     # parallel_processing=["thread", 4],
     # )
 
-    algorithm = QLearning(
-        distance_matrix=distance_matrix,
-        max_iterations=20_000,
-        learning_rate=0.01,
-        discount_rate=0.9,
-    )
-
-    # algorithm = SimulatedAnnealing(
+    # algorithm = QLearning(
     #     distance_matrix=distance_matrix,
-    #     starting_cycle=starting_cycle,
-    #     max_iterations=distance_matrix.shape[0] ** 2,
-    #     temp_iterations=100,
-    #     start_temperature=0.1,
+    #     max_iterations=20_000,
+    #     learning_rate=0.01,
+    #     discount_rate=0.9,
     # )
+
+    algorithm = SimulatedAnnealing(
+        distance_matrix=distance_matrix,
+        starting_cycle=starting_cycle,
+        max_iterations=distance_matrix.shape[0] ** 2,
+        temp_iterations=100,
+        start_temperature=1.5,
+    )
 
     alg_start_time = perf_counter()
     shortest_cycle, shortest_cycle_length, cycle_lengths_array, cycle_lengths_iterations_array \
@@ -122,15 +122,15 @@ if __name__ == '__main__':
         ax1.legend()
         ax1.grid()
 
-        fraction: float = 0.001
+        fraction: float = 0.05
         # plt.figure(figsize=(12, 8))
         ax2 = plt.subplot(2, 1, 2)
         ax2.set_xlabel("Numer iteracji całkowitej algorytmu")
         ax2.set_ylabel("Długość cyklu")
         end_percent = -1 * int(fraction * len(cycle_lengths_array))
         ax2.plot(
-            cycle_lengths_iterations_array[end_percent:],
-            cycle_lengths_array[end_percent:],
+            cycle_lengths_iterations_array[end_percent:-1],
+            cycle_lengths_array[end_percent:-1],
             '-'
         )
         # ax2.axhline(
