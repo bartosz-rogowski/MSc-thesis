@@ -79,8 +79,8 @@ class GeneticAlgorithm:
         def on_generation(ga_instance):
             fitness = np.average(ga_instance.last_generation_fitness)
             epoch = ga_instance.generations_completed
-            if epoch % 100 == 0:
-                print("epoch =", epoch)
+            # if epoch % 100 == 0:
+            #     print("epoch =", epoch)
             self.generation_fitness_per_epoch[epoch] = fitness
 
             # applying untwist operator
