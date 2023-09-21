@@ -39,7 +39,7 @@ class QLearning:
     def find_shortest_cycle(self, precision: int):
         n: int = len(self.distance_matrix)
         iteration: int = 0
-        epsilon_start: float = 0.95
+        epsilon_start: float = 0.85
         epsilon_end: float = 0.99
         delta: float = 1.
         theta_1: float = 1.
@@ -63,8 +63,8 @@ class QLearning:
         while iteration < self.MAX_ITERATIONS:
             epsilon: float = epsilon_start + \
                 (epsilon_end - epsilon_start) * np.sqrt(iteration/self.MAX_ITERATIONS)
-            if iteration % 10_000 == 0:
-                print("iteration =", iteration)
+            # if iteration % 10_000 == 0:
+            #     print("iteration =", iteration)
             cycle[0] = np.random.choice(np.arange(n), size=1, replace=True)[0]
             possible_cities = setdiff1d_nb(
                 np.arange(n).astype(np.int32),

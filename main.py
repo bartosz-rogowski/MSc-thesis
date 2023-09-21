@@ -55,9 +55,9 @@ if __name__ == '__main__':
 
     # algorithm = QLearning(
     #     distance_matrix=distance_matrix,
-    #     max_iterations=20_000,
-    #     learning_rate=0.01,
-    #     discount_rate=0.9,
+    #     max_iterations=10_000,
+    #     learning_rate=0.1,
+    #     discount_rate=0.99,
     # )
 
     algorithm = SimulatedAnnealing(
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     assert shortest_cycle[0] == shortest_cycle[-1], "Not a cycle"
 
     visualiser = Visualiser(points=points, distance_matrix=distance_matrix)
-    # visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
+    visualiser.create_cycle_figure(starting_cycle, title="cykl początkowy")
     visualiser.create_cycle_figure(shortest_cycle, title="znaleziony cykl")
 
     if cycle_lengths_iterations_array is None:
